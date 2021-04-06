@@ -1,0 +1,13 @@
+{
+  "repository": "Matsuuu/dotfiles",
+  "defaultBranch": "master",
+  "dotties": {
+    "VimRC": ".vimrc",
+    "BashRC": ".bashrc",
+    "Neovim Config": "init.vim",
+    "Polybar": "/polybar/config",
+    "Picom": "picom.conf",
+    "Tmux": ".tmux.conf",
+    "i3": ".i3/config"
+  }
+}
