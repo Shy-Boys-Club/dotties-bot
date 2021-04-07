@@ -5,6 +5,6 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/data.json "2.0.2"]
-                 [clj-http "3.12.0"]]
+                 [org.martinklepsch/clj-http-lite "0.4.3"]]
   :repl-options {:init-ns dottiesbot.core}
   :profiles {:uberjar {:aot :all}})

@@ -2,7 +2,7 @@
   (:require
    [clojure.java.shell :as shell]
    [clojure.string :as str]
-   [clj-http.client :as client]
+   [clj-http.lite.client :as client]
    [dottiesbot.util :refer [to-json-req]]))
 
 (def clone-url-base "https://github.com/REPO.git")
@@ -14,6 +14,11 @@
 
 (def pull-request-api "https://api.github.com/repos/REPO/pulls")
 (def fork-request-api "https://api.github.com/repos/REPO/forks")
+
+(defn exec
+  [& args]
+  (println (str "Running sh command" args))
+  (println (apply shell/sh args)))
 
 (defn get-pr-url
   [repo-name]
@@ -42,10 +47,8 @@
   [repo-name]
   (str "repos/" (get (str/split repo-name #"/") 1) "/"))
 
-(defn clone [repo-name]
-  (println (:out (shell/sh "git" "clone" (get-repo-url repo-name) (get-target-dir repo-name)))))
-
-(clone "Matsuuu/dotfiles")
+(defn clone [repo-name target-dir]
+  (exec "git" "clone" (get-repo-url repo-name) target-dir))
 
 (defn fork-request
   [repo-name]
@@ -54,16 +57,17 @@
 
 (defn fork
   "Create a fork of the current repo"
-  [repo-name]
-  (fork-request repo-name)
-  (println (:out (shell/sh "git" "remote" "set-url" "origin" (get-fork-repo-url repo-name) :dir (get-target-dir repo-name))))
-  (println (:out (shell/sh "git" "checkout" "-b" branch-name :dir (get-target-dir repo-name)))))
+  [repo-name target-dir]
+  (let [fork-repo-url (get-fork-repo-url repo-name)]
+    (fork-request repo-name)
+    (exec "git" "remote" "set-url" "origin" fork-repo-url :dir target-dir)
+    (exec "git" "checkout" "-b" branch-name :dir target-dir)))
 
 (defn commit-and-push
-  [repo-name]
-  (println (:out (shell/sh "git" "add" "dotties.json" :dir (get-target-dir repo-name))))
-  (println (:out (shell/sh "git" "commit" "-m" "dotties.json generated" :dir (get-target-dir repo-name))))
-  (println (:out (shell/sh "git" "push" "-u" "origin" branch-name :dir (get-target-dir repo-name)))))
+  [target-dir]
+  (exec "git" "add" "dotties.json" :dir target-dir)
+  (exec "git" "commit" "-m" "dotties.json generated" :dir target-dir)
+  (exec "git" "push" "-u" "origin" branch-name :dir target-dir))
 
 (defn generate-pull-request-body
   [default-branch]
@@ -80,6 +84,6 @@
 
 (defn clean-up
   "java.io only deletes files"
-  [repo-name]
-  (println (:out (shell/sh "rm" "-rf" (get-target-dir repo-name) :dir (get-target-dir repo-name)))))
+  [target-dir]
+  (exec "rm" "-rf" target-dir))
 
