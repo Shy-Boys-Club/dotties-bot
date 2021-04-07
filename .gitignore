@@ -14,3 +14,5 @@ pom.xml.asc
 .env
 .lsp
 .idea
+.aws-sam
+.lein-repl-history

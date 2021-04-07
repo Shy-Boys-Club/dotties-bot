@@ -1,28 +1,39 @@
 (ns dottiesbot.core
-  (:gen-class)
+  (:gen-class
+   :methods [^:static [handler [String] String]])
   (:require [dottiesbot.dotties.filewriter :refer [add-dotties-json]]
-            [dottiesbot.util :refer [from-json]]
-            [dottiesbot.github.actions :refer [fork commit-and-push pull-request clone clean-up]]))
+            [dottiesbot.util :refer [from-json to-json]]
+            [dottiesbot.github.actions :refer [fork commit-and-push pull-request clone clean-up get-target-dir set-gh-user]]))
 
 (def test-json (slurp "dotties-add-json.json"))
 
 (defn handle-request
   [request]
-  (let [request-json (from-json request)
-        repo (get request-json "repository")
-        dotties (get request-json "dotties")
-        default-branch (get request-json "defaultBranch")]
-    (clone repo)
-    (add-dotties-json repo dotties)
-    (fork repo)
-    (commit-and-push repo)
-    (pull-request repo default-branch)
-    (clean-up repo)))
+  (let [request-json    (from-json request)
+        repo            (get request-json "repository")
+        dotties         (get request-json "dotties")
+        default-branch  (get request-json "defaultBranch")
+        target-dir      (get-target-dir repo)]
 
-(defn -main
-  [& args]
+    (clone repo target-dir)
+    (set-gh-user)
+    (fork repo target-dir)
+    (add-dotties-json repo dotties)
+    (commit-and-push target-dir)
+    (pull-request repo default-branch)
+    (clean-up target-dir)))
+
+(defn -handler [s]
+  (println s)
+  (println "Handler")
+  (println "Starting...")
   (handle-request test-json)
   (println "Done!")
-  (shutdown-agents))
+  (to-json {:success true}))
 
-;(-main)
+;(defn -main [s]
+;  (-handler s))
+
+(defn -main [s]
+  (println "Called with data" s)
+  (println "Data formatted: " (from-json s)))

@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "dotties-bot"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1egykjyrcnxzm"
+s3_prefix = "dotties-bot"
+region = "eu-north-1"
+capabilities = "CAPABILITY_IAM"
