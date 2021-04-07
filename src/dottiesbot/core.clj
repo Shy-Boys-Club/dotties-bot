@@ -1,8 +1,9 @@
 (ns dottiesbot.core
-  (:gen-class)
+  (:gen-class
+   :methods [^:static [handler [String] String]])
   (:require [dottiesbot.dotties.filewriter :refer [add-dotties-json]]
-            [dottiesbot.util :refer [from-json]]
-            [dottiesbot.github.actions :refer [fork commit-and-push pull-request clone clean-up get-target-dir]]))
+            [dottiesbot.util :refer [from-json to-json]]
+            [dottiesbot.github.actions :refer [fork commit-and-push pull-request clone clean-up get-target-dir set-gh-user]]))
 
 (def test-json (slurp "dotties-add-json.json"))
 
@@ -15,18 +16,20 @@
         target-dir      (get-target-dir repo)]
 
     (clone repo target-dir)
-    (add-dotties-json repo dotties)
+    (set-gh-user)
     (fork repo target-dir)
+    (add-dotties-json repo dotties)
     (commit-and-push target-dir)
     (pull-request repo default-branch)
     (clean-up target-dir)))
 
-(defn -main
-  [& args]
+(defn -handler [s]
+  (println s)
+  (println "Handler")
   (println "Starting...")
   (handle-request test-json)
   (println "Done!")
-  (shutdown-agents))
+  (to-json {:success true}))
 
-
-;(-main)
+(defn -main [s]
+  (-handler s))
