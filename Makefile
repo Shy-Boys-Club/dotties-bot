@@ -20,15 +20,16 @@ build-native:
 	--enable-url-protocols=http,https \
 	-jar ./target/dottiesbot-0.1.0-SNAPSHOT-standalone.jar  \
 	-H:Name=./target/dottiesbot \
+	-H:+ReportExceptionStackTraces
 
 
 build-DottiesBotFunction:
 	cp target/dottiesbot $(ARTIFACTS_DIR)/bootstrap
 
 run-sam:
-	sudo sam build 
-	sudo sam local invoke -e dotties-add-json.json
+	sam build 
+	sam local invoke -e dotties-add-json.json --region=eu-north-1
 
 full-test:
 	make native
-	sudo make run-sam 
+	make run-sam 
