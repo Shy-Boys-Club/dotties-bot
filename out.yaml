@@ -1,0 +1,12 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  DottiesBotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dottiesbot.lambda.CreatePullRequest
+      Runtime: provided
+      MemorySize: 128
+      Timeout: 30
+      CodeUri: s3://dotties-bot-lambda/61074c10d5a83ba7413925f3251699ce
+    Metadata:
+      BuildMethod: makefile

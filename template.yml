@@ -1,13 +1,14 @@
+Transform: AWS::Serverless-2016-10-31
+
 Resources:
   DottiesBotFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: .
       Handler: dottiesbot.lambda.CreatePullRequest
       Runtime: provided
       MemorySize: 128
       Timeout: 30
-      Layers:
-          - !Ref arn:aws:lambda:eu-north-1:553035198032:layer:git-lambda2:8
+      #Layers:
+      #- !Ref arn:aws:lambda:eu-north-1:553035198032:layer:git-lambda2:8
     Metadata:
       BuildMethod: makefile

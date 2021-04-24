@@ -22,7 +22,6 @@ build-native:
 	-H:Name=./target/dottiesbot \
 	-H:+ReportExceptionStackTraces
 
-
 build-DottiesBotFunction:
 	cp target/dottiesbot $(ARTIFACTS_DIR)/bootstrap
 
@@ -33,3 +32,8 @@ run-sam:
 full-test:
 	make native
 	make run-sam 
+
+deploy-sam:
+	 sam package --template-file template.yml --s3-bucket dotties-bot-lambda --output-template-file out.yaml
+	 sam deploy --template-file ./out.yaml --stack-name dotties-bot
+

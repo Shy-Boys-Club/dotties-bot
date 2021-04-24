@@ -32,9 +32,13 @@
   (println "Done!")
   (to-json {:success true}))
 
+;(defn -main [s]
+;  (-handler s))
+
 (defn -main [s]
-  (-handler s))
+  (println "Yaayaa it's working"))
 
 (deflambdafn dottiesbot.lambda.CreatePullRequest
   [in out ctx]
-  (println "FOO BAR I'M A LAMBDA"))
+  (println "FOO BAR I'M A LAMBDA")
+  (str "Success!!"))
