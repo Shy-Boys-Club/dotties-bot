@@ -3,8 +3,7 @@
    :methods [^:static [handler [String] String]])
   (:require [dottiesbot.dotties.filewriter :refer [add-dotties-json]]
             [dottiesbot.util :refer [from-json to-json]]
-            [dottiesbot.github.actions :refer [fork commit-and-push pull-request clone clean-up get-target-dir set-gh-user]]
-            [uswitch.lambada.core :refer [deflambdafn]]))
+            [dottiesbot.github.actions :refer [fork commit-and-push pull-request clone clean-up get-target-dir set-gh-user]]))
 
 (def test-json (slurp "dotties-add-json.json"))
 
@@ -36,9 +35,5 @@
 ;  (-handler s))
 
 (defn -main [s]
-  (println "Yaayaa it's working"))
-
-(deflambdafn dottiesbot.lambda.CreatePullRequest
-  [in out ctx]
-  (println "FOO BAR I'M A LAMBDA")
-  (str "Success!!"))
+  (println "Called with data" s)
+  (println "Data formatted: " (from-json s)))

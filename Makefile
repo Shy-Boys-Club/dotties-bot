@@ -1,3 +1,5 @@
+INPUT=`cat dotties-add-json.json`
+
 build:
 	docker build -t dotties-bot .
 
@@ -23,7 +25,8 @@ build-native:
 	-H:+ReportExceptionStackTraces
 
 build-DottiesBotFunction:
-	cp target/dottiesbot $(ARTIFACTS_DIR)/bootstrap
+	cp bootstrap $(ARTIFACTS_DIR)/bootstrap
+	cp target/dottiesbot $(ARTIFACTS_DIR)/dottiesbot
 
 run-sam:
 	sam build 
@@ -37,3 +40,5 @@ deploy-sam:
 	 sam package --template-file template.yml --s3-bucket dotties-bot-lambda --output-template-file out.yaml
 	 sam deploy --template-file ./out.yaml --stack-name dotties-bot
 
+testrun:
+	./target/dottiesbot "$(INPUT)"
