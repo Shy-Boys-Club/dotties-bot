@@ -2,7 +2,7 @@
   (:require
    [clojure.java.shell :as shell]
    [clojure.string :as str]
-   [clj-http.client :as client]
+   [org.httpkit.client :as client]
    [dottiesbot.util :refer [to-json-req]]))
 
 (def clone-url-base "https://github.com/REPO.git")
@@ -10,10 +10,22 @@
 
 (def bot-username "dotties-bot")
 (def branch-name "dotties-bot-generated")
-(def access-token (System/getenv "GITHUB_ACCESS_TOKEN"))
+
+(defn get-access-token []
+  (or (System/getenv "GITHUB_ACCESS_TOKEN") ""))
 
 (def pull-request-api "https://api.github.com/repos/REPO/pulls")
 (def fork-request-api "https://api.github.com/repos/REPO/forks")
+
+(defn exec
+  [& args]
+  (println (str "Running sh command" args))
+  (println (apply shell/sh args)))
+
+(defn set-gh-user
+  []
+  (exec "git" "config" "--global" "user.email" "matias@shyboys.club")
+  (exec "git" "config" "--global" "user.name" "dotties-bot"))
 
 (defn get-pr-url
   [repo-name]
@@ -34,52 +46,56 @@
 
 (defn get-fork-repo-url
   [repo-name]
+
+  (if (<= (count (get-access-token)) 0)
+    (throw (Exception. "Access token not set")))
+
   (-> (str/replace clone-url-base-with-token #"REPO" (replace-repo-owner repo-name))
-      (str/replace #"TOKEN" access-token)))
+      (str/replace #"TOKEN" (get-access-token))))
 
 (defn get-target-dir
-  "Get target directory for clone, git operations and delete. Format: 'repos/reponame'"
+  "Get target directory for clone, git operations and delete. Format: '/tmp/repos/reponame'
+  Has to be under tmp to work with Lambda"
   [repo-name]
-  (str "repos/" (get (str/split repo-name #"/") 1) "/"))
+  (str "/tmp/repos/" (get (str/split repo-name #"/") 1) "/"))
 
-(defn clone [repo-name]
-  (println (:out (shell/sh "git" "clone" (get-repo-url repo-name) (get-target-dir repo-name)))))
-
-(clone "Matsuuu/dotfiles")
+(defn clone [repo-name target-dir]
+  (exec "git" "clone" (get-repo-url repo-name) target-dir "--depth" "1"))
 
 (defn fork-request
   [repo-name]
   (client/post (get-fork-api-url repo-name) {:accept "application/vnd.github.v3+json"
-                                             :oauth-token access-token}))
+                                             :oauth-token (get-access-token)}))
 
 (defn fork
   "Create a fork of the current repo"
-  [repo-name]
-  (fork-request repo-name)
-  (println (:out (shell/sh "git" "remote" "set-url" "origin" (get-fork-repo-url repo-name) :dir (get-target-dir repo-name))))
-  (println (:out (shell/sh "git" "checkout" "-b" branch-name :dir (get-target-dir repo-name)))))
+  [repo-name target-dir]
+  (let [fork-repo-url (get-fork-repo-url repo-name)]
+    (fork-request repo-name)
+    (exec "git" "remote" "set-url" "origin" fork-repo-url :dir target-dir)
+    (exec "git" "checkout" "-b" branch-name :dir target-dir)))
 
 (defn commit-and-push
-  [repo-name]
-  (println (:out (shell/sh "git" "add" "dotties.json" :dir (get-target-dir repo-name))))
-  (println (:out (shell/sh "git" "commit" "-m" "dotties.json generated" :dir (get-target-dir repo-name))))
-  (println (:out (shell/sh "git" "push" "-u" "origin" branch-name :dir (get-target-dir repo-name)))))
+  [target-dir]
+  (exec "git" "add" "dotties.json" :dir target-dir)
+  (exec "git" "commit" "-m" "dotties.json generated" :dir target-dir)
+  (exec "git" "push" "-u" "origin" "-f" branch-name :dir target-dir))
 
 (defn generate-pull-request-body
   [default-branch]
   (to-json-req {:title "Update dotties.json"
                 :head (str bot-username ":" branch-name)
                 :base default-branch
-                :body "This is a automatically generated PR from https://dotties.io\n\n Please review the changes and merge this update to enable activate your repository in dotties.io.\n\n - The Shy Boys Club"}))
+                :body "This is a automatically generated PR from https://dotties.io\n\n Please review the changes and merge this update to activate your repository in dotties.io.\n\n - The Shy Boys Club"}))
 
 (defn pull-request
   [repo-name default-branch]
   (client/post (get-pr-url repo-name) {:accept "application/vnd.github.v3+json"
-                                       :oauth-token access-token
+                                       :oauth-token (get-access-token)
                                        :body (generate-pull-request-body default-branch)}))
 
 (defn clean-up
   "java.io only deletes files"
-  [repo-name]
-  (println (:out (shell/sh "rm" "-rf" (get-target-dir repo-name) :dir (get-target-dir repo-name)))))
+  [target-dir]
+  (exec "rm" "-rf" target-dir))
 

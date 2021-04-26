@@ -1,16 +1,16 @@
 (ns dottiesbot.util
-  (:require [clojure.data.json :as json]))
+  (:require [cheshire.core :as json]))
 
 (defn from-json
   [json-string]
-  (json/read-str json-string))
+  (json/parse-string json-string))
 
 (defn to-json
   "Write JSON object to file, pretty printed"
   [json-obj]
-  (with-out-str (json/pprint json-obj :escape-slash false)))
+  (json/generate-string json-obj {:pretty true}))
 
 (defn to-json-req
   "Write JSON object for requests. No prettifying"
   [json-obj]
-  (json/write-str json-obj))
+  (json/generate-string json-obj))
