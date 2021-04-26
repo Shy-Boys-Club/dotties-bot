@@ -41,9 +41,13 @@ build-for-aws:
 deploy-lambda:
 	aws lambda create-function \
 	--function-name dotties-bot \
-	--zip-file fileb://./lambda.zip --handler initiator.handler --runtime provided \
+	--zip-file fileb://./lambda.zip \
+	--handler initiator.handler \
+	--runtime provided \
 	--role $(ROLE) \
-	--layers arn:aws:lambda:eu-north-1:553035198032:layer:git-lambda2:8
+	--layers arn:aws:lambda:eu-north-1:553035198032:layer:git-lambda2:8 \
+	--timeout 25 \
+	--memory-size 128
 
 update-lambda:
 	aws lambda update-function-code \
