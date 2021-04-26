@@ -5,8 +5,7 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [cheshire "5.10.0"]
-                 [http-kit "2.5.3"]
-                 [com.amazonaws/aws-lambda-java-core "1.2.1"]]
+                 [http-kit "2.5.3"]]
   :repl-options {:init-ns dottiesbot.core}
 
   :profiles {:uberjar {:aot :all}})

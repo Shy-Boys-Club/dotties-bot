@@ -1,4 +1,5 @@
 INPUT=`cat dotties-add-json.json`
+ROLE=${AWS_ROLE}
 
 build:
 	docker build -t dotties-bot .
@@ -24,21 +25,20 @@ build-native:
 	-H:Name=./target/dottiesbot \
 	-H:+ReportExceptionStackTraces
 
-build-DottiesBotFunction:
-	cp bootstrap $(ARTIFACTS_DIR)/bootstrap
-	cp target/dottiesbot $(ARTIFACTS_DIR)/dottiesbot
-
-run-sam:
-	sam build 
-	sam local invoke -e dotties-add-json.json --region=eu-north-1
-
-full-test:
-	make native
-	make run-sam 
-
-deploy-sam:
-	 sam package --template-file template.yml --s3-bucket dotties-bot-lambda --output-template-file out.yaml
-	 sam deploy --template-file ./out.yaml --stack-name dotties-bot
-
 testrun:
 	./target/dottiesbot "$(INPUT)"
+
+package:
+	rm lambda.zip
+	zip lambda.zip bootstrap target/dottiesbot initiator.sh
+
+build-for-aws:
+	docker build . -t dottiesbot-native -f Dockerfile-lambda 
+	docker create -ti --name dottiesbot-native-container dottiesbot-native bash
+	docker cp dottiesbot-native-container:/home/application/lambda.zip ./lambda.zip
+	docker rm -f dottiesbot-native-container
+
+deploy-lambda:
+	aws lambda create-function --function-name dotties-bot \
+	--zip-file fileb://./lambda.zip --handler initiator.handler --runtime provided \
+	--role $(ROLE) 
