@@ -39,6 +39,16 @@ build-for-aws:
 	docker rm -f dottiesbot-native-container
 
 deploy-lambda:
-	aws lambda create-function --function-name dotties-bot \
+	aws lambda create-function \
+	--function-name dotties-bot \
 	--zip-file fileb://./lambda.zip --handler initiator.handler --runtime provided \
-	--role $(ROLE) 
+	--role $(ROLE) \
+	--layers arn:aws:lambda:eu-north-1:553035198032:layer:git-lambda2:8
+
+update-lambda:
+	aws lambda update-function-code \
+	--function-name dotties-bot \
+	--zip-file fileb://./lambda.zip \
+	--publish 
+
+	
