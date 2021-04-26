@@ -24,16 +24,11 @@
     (clean-up target-dir)))
 
 (defn -handler [s]
-  (println s)
-  (println "Handler")
-  (println "Starting...")
-  (handle-request test-json)
+  (handle-request s)
   (println "Done!")
   (to-json {:success true}))
 
-;(defn -main [s]
-;  (-handler s))
-
 (defn -main [s]
   (println "Called with data" s)
-  (println "Data formatted: " (from-json s)))
+  (-handler s)
+  (System/exit 0))

@@ -10,7 +10,9 @@
 
 (def bot-username "dotties-bot")
 (def branch-name "dotties-bot-generated")
-(def access-token (or (System/getenv "GITHUB_ACCESS_TOKEN") ""))
+
+(defn get-access-token []
+  (or (System/getenv "GITHUB_ACCESS_TOKEN") ""))
 
 (def pull-request-api "https://api.github.com/repos/REPO/pulls")
 (def fork-request-api "https://api.github.com/repos/REPO/forks")
@@ -45,11 +47,11 @@
 (defn get-fork-repo-url
   [repo-name]
 
-  (if (<= (count access-token) 0)
+  (if (<= (count (get-access-token)) 0)
     (throw (Exception. "Access token not set")))
 
   (-> (str/replace clone-url-base-with-token #"REPO" (replace-repo-owner repo-name))
-      (str/replace #"TOKEN" access-token)))
+      (str/replace #"TOKEN" (get-access-token))))
 
 (defn get-target-dir
   "Get target directory for clone, git operations and delete. Format: '/tmp/repos/reponame'
@@ -63,7 +65,7 @@
 (defn fork-request
   [repo-name]
   (client/post (get-fork-api-url repo-name) {:accept "application/vnd.github.v3+json"
-                                             :oauth-token access-token}))
+                                             :oauth-token (get-access-token)}))
 
 (defn fork
   "Create a fork of the current repo"
@@ -84,12 +86,12 @@
   (to-json-req {:title "Update dotties.json"
                 :head (str bot-username ":" branch-name)
                 :base default-branch
-                :body "This is a automatically generated PR from https://dotties.io\n\n Please review the changes and merge this update to enable activate your repository in dotties.io.\n\n - The Shy Boys Club"}))
+                :body "This is a automatically generated PR from https://dotties.io\n\n Please review the changes and merge this update to activate your repository in dotties.io.\n\n - The Shy Boys Club"}))
 
 (defn pull-request
   [repo-name default-branch]
   (client/post (get-pr-url repo-name) {:accept "application/vnd.github.v3+json"
-                                       :oauth-token access-token
+                                       :oauth-token (get-access-token)
                                        :body (generate-pull-request-body default-branch)}))
 
 (defn clean-up

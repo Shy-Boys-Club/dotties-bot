@@ -16,3 +16,4 @@ pom.xml.asc
 .idea
 .aws-sam
 .lein-repl-history
+lambda.zip
